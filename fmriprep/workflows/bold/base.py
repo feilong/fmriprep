@@ -38,6 +38,8 @@ from .resampling import (
 )
 from .outputs import init_func_derivatives_wf
 
+from .minimal import init_bold_minimal_wf
+
 
 def init_func_preproc_wf(bold_file):
     """
@@ -881,6 +883,51 @@ Non-gridded (surface) resamplings were performed using `mri_vol2surf`
         if node.split('.')[-1].startswith('ds_report'):
             workflow.get_node(node).inputs.base_directory = fmriprep_dir
             workflow.get_node(node).inputs.source_file = ref_file
+
+    bold_minimal_wf = init_bold_minimal_wf(
+        output_dir=os.path.join(fmriprep_dir, 'minimal'),
+        name='bold_minimal_wf')
+
+    workflow.connect([
+        (inputnode, bold_minimal_wf, [
+            ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
+            ('template', 'inputnode.template'),
+            ('anat2std_xfm', 'inputnode.anat2std_xfm'),  # in1
+            ('bold_file', 'inputnode.bold_file'),
+            ('t1w_mask', 'inputnode.t1w_mask'),
+            ('t1w_aseg', 'inputnode.t1w_aseg'),
+            ('t1w_aparc', 'inputnode.t1w_aparc'),
+        ]),
+        (final_boldref_wf, bold_minimal_wf, [
+            ('outputnode.bold_mask', 'inputnode.bold_mask')]),
+        (bold_reg_wf, bold_minimal_wf, [
+            ('outputnode.itk_bold_to_t1', 'inputnode.itk_bold_to_t1')]),  # in2
+        (t1w_brain, bold_minimal_wf, [
+            ('out_file', 'inputnode.t1w_brain')]),
+        (bold_sdc_wf, bold_minimal_wf, [
+            ('outputnode.epi_mask', 'inputnode.ref_bold_mask'),
+            ('outputnode.epi_brain', 'inputnode.ref_bold_brain')]),
+        (bold_t1_trans_wf, bold_minimal_wf, [
+            ('outputnode.bold_t1', 'inputnode.bold_t1'),
+        ]),
+    ])
+
+    if not multiecho:
+        workflow.connect([
+            (bold_split, bold_minimal_wf, [
+                ('out_files', 'inputnode.bold_split')]),
+            (bold_sdc_wf, bold_minimal_wf, [
+                ('outputnode.out_warp', 'inputnode.fieldwarp')]),  # in3
+            (bold_hmc_wf, bold_minimal_wf, [
+                ('outputnode.xforms', 'inputnode.hmc_xforms')]),  # in4
+        ])
+    else:
+        workflow.connect([
+            (split_opt_comb, bold_minimal_wf, [
+                ('out_files', 'inputnode.bold_split')])
+        ])
+        bold_minimal_wf.inputs.inputnode.fieldwarp = 'identity'
+        bold_minimal_wf.inputs.inputnode.hmc_xforms = 'identity'
 
     return workflow
 
