@@ -162,6 +162,7 @@ def init_func_preproc_wf(bold_file):
     freesurfer = config.workflow.run_reconall
     spaces = config.workflow.spaces
     fmriprep_dir = str(config.execution.fmriprep_dir)
+    resample = not config.workflow.skip_resample
 
     # Extract BIDS entities and metadata from BOLD file(s)
     entities = extract_entities(bold_file)
@@ -295,6 +296,7 @@ Non-gridded (surface) resamplings were performed using `mri_vol2surf`
         output_dir=fmriprep_dir,
         spaces=spaces,
         use_aroma=config.workflow.use_aroma,
+        resample=resample,
     )
 
     workflow.connect([
@@ -656,7 +658,7 @@ Non-gridded (surface) resamplings were performed using `mri_vol2surf`
                 ('outputnode.bold', 'bold_native')])
         ])
 
-    if spaces.get_spaces(nonstandard=False, dim=(3,)):
+    if spaces.get_spaces(nonstandard=False, dim=(3,)) and resample:
         # Apply transforms in 1 shot
         # Only use uncompressed output if AROMA is to be run
         bold_std_trans_wf = init_bold_std_trans_wf(
@@ -781,7 +783,7 @@ Non-gridded (surface) resamplings were performed using `mri_vol2surf`
     # SURFACES ##################################################################################
     # Freesurfer
     freesurfer_spaces = spaces.get_fs_spaces()
-    if freesurfer and freesurfer_spaces:
+    if freesurfer and freesurfer_spaces and resample:
         config.loggers.workflow.debug('Creating BOLD surface-sampling workflow.')
         bold_surf_wf = init_bold_surf_wf(
             mem_gb=mem_gb['resampled'],

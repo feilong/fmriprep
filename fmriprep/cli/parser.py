@@ -362,6 +362,13 @@ https://fmriprep.readthedocs.io/en/%s/spaces.html"""
         default=None,
         help="Initialize the random seed for the workflow",
     )
+    g_conf.add_argument(
+        "--skip-resample",
+        dest="skip_resample",
+        action="store_true",
+        default=False,
+        help="skip resampling and only store transforms",
+    )
 
     # ICA_AROMA options
     g_aroma = parser.add_argument_group("Specific options for running ICA_AROMA")

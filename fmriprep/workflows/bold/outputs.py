@@ -100,6 +100,7 @@ def init_func_derivatives_wf(
     output_dir,
     spaces,
     use_aroma,
+    resample,
     name='func_derivatives_wf',
 ):
     """
@@ -184,6 +185,9 @@ def init_func_derivatives_wf(
         (inputnode, ds_ref_t1w_inv_xfm, [('source_file', 'source_file'),
                                          ('anat2bold_xfm', 'in_file')]),
     ])
+
+    if not resample:
+        return workflow
 
     if nonstd_spaces.intersection(('func', 'run', 'bold', 'boldref', 'sbref')):
         ds_bold_native = pe.Node(
