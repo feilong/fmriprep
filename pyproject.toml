@@ -1,3 +1,4 @@
+
 [build-system]
 requires = ["hatchling", "hatch-vcs", "nipreps-versions"]
 build-backend = "hatchling.build"
@@ -32,7 +33,7 @@ dependencies = [
     "psutil >= 5.4",
     "pybids >= 0.15.2",
     "requests",
-    "sdcflows @ git+https://github.com/nipreps/sdcflows.git@master",
+    "sdcflows @ git+https://github.com/nipreps/sdcflows.git@main",
     "smriprep @ git+https://github.com/nipreps/smriprep.git@master",
     "tedana >= 23.0.2",
     "templateflow >= 24.1.0",
